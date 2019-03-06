@@ -1,0 +1,29 @@
+{
+  "name": "tizen-remote",
+  "version": "1.0.0",
+  "description": "Samsung smart tv 2016+ models remote control",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avsokolov/tizen-remote.git"
+  },
+  "keywords": [
+    "Samsung",
+    "Tizen",
+    "SmartTv"
+  ],
+  "author": "alexander.sokolov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/avsokolov/tizen-remote/issues"
+  },
+  "homepage": "https://github.com/avsokolov/tizen-remote#readme",
+  "dependencies": {
+    "request": "2.88.0",
+    "wol": "1.0.5",
+    "ws": "6.2.0"
+  }
+}
