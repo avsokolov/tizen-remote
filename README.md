@@ -9,32 +9,52 @@ npm install tizen-remote
 
 ```
   const tv = require('tizen-remote');
-  const search = require('youtube-search');
   
+  //basic initialisation
+  let token;
+  let mac;
+  tv.onTokenUpdate(newToken => {
+    //you can save it premanenty and use anytime later
+    token = newToken;
+  });
   tv.init({
     pairingName: 'MyServiceName', //name, displayed on tv while pairing request
     ip: '192.168.0.100',          //tv ip address (required)
-    mac: '00:00:00:00:00:00',     //tv mac address (optional, necessary to turn tv on)
-    authToken: '34324324'         //service authentication token (optional). If it's not set, service will request it on first connection
   });
   
-  ...
   //turn on tv and get device information
   tv.isOn()
     .then(on => {
-      if (!on) {
-        return tv.turnOn();
+      if (on) {
+        return tv.getInfo();
+      } else {
+        console.log('can not remoutly turn tv on without mac address');
       }
     })
-    .then(() => tv.getInfo())
-    .then(console.log)
+    .then(info => {
+      if (info) {
+        console.log(info);
+        mac = info.mac; //tv WiFi interface mac address (necessary to turn tv on)
+      }
+    })
     .catch(err => {
       console.log(err);
-      tv.turnOff();
     });
-
+    
+  ...
+  
+  //initialisation with auth-token
+  tv.init({
+    pairingName: 'MyServiceName', //name, displayed on tv while pairing request
+    ip: '192.168.0.100',          //tv ip address (required)
+    mac: mac,
+    authToken: token
+  });
+  
   ...
   //Open a YouTube video on tv
+  const search = require('youtube-search');
+
   search('An awesome video', {
     maxResults: 1, 
     key: 'AIzaSyBMxXBwRtFjCRv-sb82ZXVpZuYHX26Z5oU', 
@@ -42,7 +62,13 @@ npm install tizen-remote
   }, res => openYoutube(res[0].id));
   
   function openYoutube(videoId) {
-    tv.getAppList()
+    tv.isOn()
+      .then(on => {
+        if (!on) {
+          return tv.turnOn();
+        }
+      })
+      .then(() => tv.getAppList())      
       .then(apps => {
         if (apps.youtube) {
           return tv.getAppInfo(apps.youtube)
