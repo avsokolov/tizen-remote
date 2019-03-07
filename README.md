@@ -9,6 +9,7 @@ npm install tizen-remote
 
 ```
   const tv = require('tizen-remote');
+  const search = require('youtube-search');
   
   tv.init({
     pairingName: 'MyServiceName', //name, displayed on tv while pairing request
@@ -18,6 +19,7 @@ npm install tizen-remote
   });
   
   ...
+  //turn on tv and get device information
   tv.isOn()
     .then(on => {
       if (!on) {
@@ -26,30 +28,37 @@ npm install tizen-remote
     })
     .then(() => tv.getInfo())
     .then(console.log)
-    .then(() => tv.getAppList())
-    .then(apps => {
-      if (apps.youtube) {
-        return tv.getAppInfo(apps.youtube)
-      }
-    })
-    .then(youtube => {
-      if (!youtube.runnig) {
-        retunr tv.getAppInfo(youtube.id);
-      }
-    })
-    .then(youtube => {
-      if (youtube) {
-        if (!youtube.running) {
-          return tv.openApp(youtube.id);
-        } else {
-          console.log('Already opened');
-        }
-      } else {
-        return tv.openURL('https://www.youtube.com/');
-      }
-    })
     .catch(err => {
       console.log(err);
       tv.turnOff();
     });
+
+  ...
+  //Open a YouTube video on tv
+  search('An awesome video', {
+    maxResults: 1, 
+    key: 'AIzaSyBMxXBwRtFjCRv-sb82ZXVpZuYHX26Z5oU', 
+    type: 'video'
+  }, res => openYoutube(res[0].id));
+  
+  function openYoutube(videoId) {
+    tv.getAppList()
+      .then(apps => {
+        if (apps.youtube) {
+          return tv.getAppInfo(apps.youtube)
+        }
+      })
+      .then(youtube => {
+        if (youtube) {
+          if (youtube.running) {
+            console.log('YouTube already opened');
+          }
+          
+          return tv.openApp(youtube.id, videoId);
+        } else {
+          return tv.openURL(`https://www.youtube.com/watch?v=${videoId}`);
+        }
+      })
+      .catch(err => console.log(err));
+    }
 ```
