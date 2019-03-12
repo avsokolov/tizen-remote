@@ -34,7 +34,7 @@ npm install tizen-remote
     .then(info => {
       if (info) {
         console.log(info);
-        mac = info.mac; //tv WiFi interface mac address (necessary to turn tv on)
+        mac = info.device.wifiMac; //tv WiFi interface mac address (necessary to turn tv on)
       }
     })
     .catch(err => {
@@ -71,7 +71,7 @@ npm install tizen-remote
       .then(() => tv.getAppList())      
       .then(apps => {
         if (apps.youtube) {
-          return tv.getAppInfo(apps.youtube)
+          return tv.getAppInfo(apps.youtube.id)
         }
       })
       .then(youtube => {
