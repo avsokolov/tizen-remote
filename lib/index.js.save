@@ -29,7 +29,7 @@ module.exports = class TizenRemote extends EventEmitter {
 
             this._ws.close();
             this._ws = null;
-            clearTimeout(this._pingTimer);
+            clearInterval(this._pingTimer);
         };
     }
 
@@ -169,11 +169,9 @@ module.exports = class TizenRemote extends EventEmitter {
 
         commands.forEach(command => {
             this.commandPromise = this.commandPromise
-                .then(() => this._sendOneKey(command))
+                .then(() => this.sendCmd(command))
                 .then(() => this._delay());
         });
-
-        return this.commandPromise;
     }
 
     openUrl(url) {
@@ -231,7 +229,8 @@ module.exports = class TizenRemote extends EventEmitter {
             this._ws.on('close', () => {
                 if (this._ws) {
                     this._ws = null;
-                    clearTimeout(this._pingTimer);
+                    clearInterval(this._pingTimer);
+                    clearTimeout(this._connectionTimer);
                 }
             });
 
@@ -266,10 +265,8 @@ module.exports = class TizenRemote extends EventEmitter {
                     }, {});
 
                     this.emit('appsUpdate');
-                } else if (response.event === '_ping') {
-                    if (response.from === this._clientId) {
-                        this.emit('pong', response.data);
-                    }
+                } else if (response.event === '_ping' && response.from === this._clientId) {
+                    this.emit('pong', response.data);
                 } else {
                     // Other response
                     if (this.config.logger) {
@@ -297,21 +294,25 @@ module.exports = class TizenRemote extends EventEmitter {
     }
 
     _ping() {
-        if (!this._ws) return;
-
-        this._sendWS({
-            method:'ms.channel.emit',
-            params: {
-                event: '_ping',
-                data: new Date().toISOString(),
-                to: this._clientId
+        this._pingTimer = setTimeout(() => {
+            if (!this._ws) {
+                return;
             }
-        });
+
+            this._sendWS({
+                method:'ms.channel.emit',
+                params: {
+                    event: '_ping',
+                    data: new Date().toISOString(),
+                    to: this._clientId
+                }
+            });
+        }, WS_CHECK_INTERVAL);
         this._connectionTimer = setTimeout(this._pingTimeout, WS_CHECK_TIMEOUT);
 
-        this.once('pong', () => {
+        this.on('pong', () => {
             clearTimeout(this._connectionTimer);
-            this._pingTimer = setTimeout(() => this._ping(), WS_CHECK_INTERVAL);
+            this._connectionTimer = setTimeout(this._pingTimeout, WS_CHECK_TIMEOUT);
         });
     }
 

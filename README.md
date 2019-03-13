@@ -57,7 +57,7 @@ npm install tizen-remote
 
   search('An awesome video', {
     maxResults: 1, 
-    key: 'AIzaSyBMxXBwRtFjCRv-sb82ZXVpZuYHX26Z5oU', 
+    key: '<Your Google API KEY>', 
     type: 'video'
   }, res => openYoutube(res[0].id));
   
